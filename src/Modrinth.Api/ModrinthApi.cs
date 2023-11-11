@@ -9,6 +9,7 @@ namespace Modrinth.Api
         public Projects Projects { get; }
         public Mods Mods { get; }
         public Settings Settings { get; }
+        public Versions Versions { get; }
 
         public ModrinthApi()
         {
@@ -19,8 +20,10 @@ namespace Modrinth.Api
 
             Projects = new Projects(this, HttpClientFactory);
             Mods = new Mods(this, HttpClientFactory);
+            Versions = new Versions(this, HttpClientFactory);
 
         }
-        
+
     }
+
 }

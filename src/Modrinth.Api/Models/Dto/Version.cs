@@ -1,5 +1,10 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using Modrinth.Api.Models.Dto.Entities;
 
 namespace Modrinth.Api.Models.Dto
@@ -32,7 +37,7 @@ namespace Modrinth.Api.Models.Dto
 
         [JsonPropertyName("author_id")] public string AuthorId { get; set; }
 
-        [JsonPropertyName("date_published")] public string DatePublished { get; set; }
+        [JsonPropertyName("date_published")] public DateTimeOffset DatePublished { get; set; }
 
         [JsonPropertyName("downloads")] public int Downloads { get; set; }
 
@@ -40,5 +45,32 @@ namespace Modrinth.Api.Models.Dto
 
         [JsonPropertyName("files")] public List<File> Files { get; set; }
         public ModrinthApi Api { get; set; }
+
+        public Task<IEnumerable<Version>> GetDependenciesUrlsAsync(CancellationToken token)
+        {
+            return Api.Versions.GetDependenciesAsync(this, token);
+        }
+
+        public Task<IEnumerable<Version>> GetRecursiveDependenciesUrlsAsync(CancellationToken token)
+        {
+            return GetRecursiveDependenciesUrlsAsync(this, token);
+        }
+
+        public async Task<IEnumerable<Version>> GetRecursiveDependenciesUrlsAsync(Version version, CancellationToken token)
+        {
+            var versions = (await Api.Versions.GetDependenciesAsync(version, token)).ToList();
+
+            var childVersions = versions.ToList();
+
+            foreach (var dependencyVersion in childVersions)
+            {
+                var dependencies = await GetRecursiveDependenciesUrlsAsync(dependencyVersion, token);
+
+
+                versions.AddRange(dependencies);
+            }
+
+            return versions;
+        }
     }
 }

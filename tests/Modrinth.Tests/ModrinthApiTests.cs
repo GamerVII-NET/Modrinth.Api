@@ -36,6 +36,7 @@ public class Tests
         {
             Query = "app",
             Limit = 50,
+            Index = FaceIndexEnum.Follows,
             Offset = 0
         };
 
@@ -52,7 +53,7 @@ public class Tests
         {
             Assert.That(_projects, Is.Not.Null);
             Assert.That(_projects!.TotalHits, Is.Not.EqualTo(0));
-            Assert.That(_projects!.Hits.Count, Is.Not.EqualTo(0));
+            Assert.That(_projects!.Hits, Is.Not.Empty);
         });
     }
 
@@ -95,6 +96,7 @@ public class Tests
         var projectFilter = new ProjectModFilter()
         {
             Query = "mod",
+            Index = FaceIndexEnum.Follows,
             Limit = 50,
             Offset = 0
         };
@@ -123,6 +125,7 @@ public class Tests
         var projectFilter = new ProjectModFilter()
         {
             Query = "mod",
+            Index = FaceIndexEnum.Follows,
             Limit = 50,
             Offset = 0
         };
@@ -160,6 +163,43 @@ public class Tests
             Assert.That(mod.GetType(), Is.EqualTo(typeof(ModProject)));
             Assert.That(versions, Is.Not.Null);
             Assert.That(versions!.Count(), Is.Not.EqualTo(0));
+        });
+    }
+
+    [Test, Order(8)]
+    public async Task DownloadModTest()
+    {
+        var modFilter = new ProjectModFilter
+        {
+            Query = "BuildCraft Compat",
+            Limit = 1,
+            Offset = 0
+        };
+
+        modFilter.AddFacet(ProjectFilterTypes.Version, "1.7.10");
+
+        _mods = await _api.Mods.FindAsync<SearchProjectResultDto>(modFilter, CancellationToken.None);
+
+        var searchedMod = _mods.Hits.First();
+
+        var modProject = await _api.Mods.FindAsync<ModProject?>(searchedMod.ProjectId, CancellationToken.None);
+
+        var enumerable = await modProject?.GetVersionsAsync(CancellationToken.None)!;
+
+        var actual = enumerable.ToList();
+
+        var lastVersion = actual.MaxBy(c => c.DatePublished);
+
+        if (lastVersion != null)
+        {
+            var folder = Path.Combine(Environment.CurrentDirectory, "mods");
+
+            await _api.Mods.DownloadAsync(folder, lastVersion, true, CancellationToken.None);
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(lastVersion, Is.Not.Null);
         });
     }
 

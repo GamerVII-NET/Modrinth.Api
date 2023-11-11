@@ -9,6 +9,7 @@ namespace Modrinth.Api.Core.Filter
     {
         private ICollection<Facet> _facets = new List<Facet>();
         public string Query { get; set; }
+        public string Index { get; set; } = FaceIndexEnum.Relevance;
         public Int16 Offset { get; set; }
         public Int16 Limit { get; set; } = 20;
 
@@ -32,6 +33,7 @@ namespace Modrinth.Api.Core.Filter
             stringBuilder.AppendJoin(string.Empty, "?query=", Query);
             stringBuilder.AppendJoin(string.Empty, "&offset=", Offset);
             stringBuilder.AppendJoin(string.Empty, "&limit=", Limit);
+            stringBuilder.AppendJoin(string.Empty, "&index=", Index);
 
             if (_facets.Count > 0)
             {
