@@ -19,7 +19,7 @@ namespace Modrinth.Api.Core.Projects
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<IEnumerable<Version>> GetDependenciesAsync(Version version, CancellationToken token)
+        public async Task<IEnumerable<Version>> GetDependenciesAsync(Version version, string loaderName, CancellationToken token)
         {
             var dependencyVersions = new List<Version>();
 
@@ -33,7 +33,7 @@ namespace Modrinth.Api.Core.Projects
 
                 if (!string.IsNullOrEmpty(dependency.ProjectId))
                 {
-                    dependencyVersion = await _api.Mods.GetLastVersionAsync(dependency.ProjectId, token);
+                    dependencyVersion = await _api.Mods.GetLastVersionAsync(dependency.ProjectId, loaderName, token);
                 }
 
                 if (dependencyVersion != null)

@@ -31,18 +31,18 @@ namespace Modrinth.Api.Core.Projects
             return project;
         }
 
-        public Task DownloadAsync(string path, Version version, bool loadDependencies, CancellationToken token)
+        public Task DownloadAsync(string path, Version version, string loaderName, bool loadDependencies, CancellationToken token)
         {
-            return DownloadAsync(new DirectoryInfo(path), version, loadDependencies, token);
+            return DownloadAsync(new DirectoryInfo(path), version, loaderName, loadDependencies, token);
         }
 
-        public async Task DownloadAsync(DirectoryInfo directory, Version version, bool loadDependencies, CancellationToken token)
+        public async Task DownloadAsync(DirectoryInfo directory, Version version, string loaderName, bool loadDependencies, CancellationToken token)
         {
             var filesUrls = version.Files.Select(c => c.Url).ToList();
 
             if (loadDependencies)
             {
-                var dependenciesVersions = await version.GetRecursiveDependenciesUrlsAsync(token);
+                var dependenciesVersions = await version.GetRecursiveDependenciesUrlsAsync(loaderName, token);
 
                 var dependencyFiles = dependenciesVersions.SelectMany(c => c.Files).Select(c => c.Url);
 
@@ -53,11 +53,11 @@ namespace Modrinth.Api.Core.Projects
 
         }
 
-        public async Task<Version?> GetLastVersionAsync(string identifier, CancellationToken token)
+        public async Task<Version?> GetLastVersionAsync(string identifier, string loaderName, CancellationToken token)
         {
             var versions = await GetProjectVersions(identifier, token);
 
-            return versions.OrderByDescending(c => c.DatePublished).FirstOrDefault();
+            return versions.OrderByDescending(c => c.DatePublished).FirstOrDefault(c => c.Loaders.Contains(loaderName));
         }
     }
 }
