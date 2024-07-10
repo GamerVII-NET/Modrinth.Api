@@ -15,6 +15,10 @@ namespace Modrinth.Api.Core.Filter
 
         public Facet AddFacet(string key, string value, LogicalOperator logicalOperator = LogicalOperator.And)
         {
+            var element = _facets.FirstOrDefault(c => c.Key == key && c.Value == value);
+
+            if (element != null) return element;
+
             var facet = new Facet
             {
                 Key = key,
@@ -25,6 +29,32 @@ namespace Modrinth.Api.Core.Filter
             _facets.Add(facet);
 
             return facet;
+        }
+
+
+
+        public void ToggleFacet(string key, string value, LogicalOperator logicalOperator = LogicalOperator.And)
+        {
+            var element = _facets.FirstOrDefault(c => c.Key == key && c.Value == value);
+
+            if (element == null)
+            {
+                AddFacet(key, value, logicalOperator);
+            }
+            else
+            {
+                RemoveFacet(key, value);
+            }
+        }
+
+        public void RemoveFacet(string key, string value)
+        {
+            var element = _facets.FirstOrDefault(c => c.Key == key && c.Value == value);
+
+            if (element != null)
+            {
+                _facets.Remove(element);
+            }
         }
 
         internal string ToQueryString()

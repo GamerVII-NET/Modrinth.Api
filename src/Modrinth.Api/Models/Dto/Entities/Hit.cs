@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Modrinth.Api.Core.Projects;
@@ -43,9 +44,9 @@ namespace Modrinth.Api.Models.Dto.Entities
 
         [JsonPropertyName("follows")] public int Follows { get; set; }
 
-        [JsonPropertyName("date_created")] public string DateCreated { get; set; }
+        [JsonPropertyName("date_created")] public DateTimeOffset DateCreated { get; set; }
 
-        [JsonPropertyName("date_modified")] public string DateModified { get; set; }
+        [JsonPropertyName("date_modified")] public DateTimeOffset DateModified { get; set; }
 
         [JsonPropertyName("latest_version")] public string LatestVersion { get; set; }
 

@@ -13,19 +13,27 @@ namespace Modrinth.Api.Core.System
 
         public async Task DownloadFileAsync(string url, string destinationDirectory, CancellationToken token)
         {
-            Directory.CreateDirectory(destinationDirectory);
-
             var fileName = Path.GetFileName(url);
-            var destinationPath = Path.Combine(destinationDirectory, fileName);
+            var fileInfo = new FileInfo(Path.Combine(destinationDirectory, fileName));
 
-            var fileBytes = await _httpClient.GetByteArrayAsync(url);
+            if (fileInfo.Exists && fileInfo.Length > 0)
+            {
+                return;
+            }
 
-            await File.WriteAllBytesAsync(destinationPath, fileBytes, token);
+            var stream = await _httpClient.GetStreamAsync(url);
+            await using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await stream.CopyToAsync(fileStream, token);
+            }
         }
 
         public Task DownloadFilesAsync(IEnumerable<string> urls, string destinationDirectory, CancellationToken token)
         {
-            Directory.CreateDirectory(destinationDirectory);
+            if (!Directory.Exists(destinationDirectory))
+            {
+                Directory.CreateDirectory(destinationDirectory);
+            }
 
             var downloadTasks = urls.Select(url => DownloadFileAsync(url, destinationDirectory, token));
 

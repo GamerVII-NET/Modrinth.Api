@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,12 +18,12 @@ namespace Modrinth.Api.Core.Projects
     public class Projects : IProjectRepository
     {
         private readonly ModrinthApi _api;
-        private readonly HttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
 
-        public Projects(ModrinthApi api, HttpClientFactory httpClientFactory)
+        public Projects(ModrinthApi api, HttpClient httpClient)
         {
             _api = api;
-            _httpClientFactory = httpClientFactory;
+            _httpClient = httpClient;
         }
 
         public async Task<SearchProjectResultDto> FindAsync<Project>(ProjectFilter filter, CancellationToken token)
@@ -47,7 +48,7 @@ namespace Modrinth.Api.Core.Projects
 
             var endPoint = string.Concat(ModrinthEndpoints.SearchProjects, filter.ToQueryString());
 
-            var response = await _httpClientFactory.HttpClient.GetAsync(endPoint, token);
+            var response = await _httpClient.GetAsync(endPoint, token);
 
             RequestHelper.UpdateApiRequestInfo(_api, response);
 
@@ -71,7 +72,7 @@ namespace Modrinth.Api.Core.Projects
         {
             var endPoint = string.Concat(ModrinthEndpoints.Project, identifier);
 
-            var response = await _httpClientFactory.HttpClient.GetAsync(endPoint, cancellationToken);
+            var response = await _httpClient.GetAsync(endPoint, cancellationToken);
 
             RequestHelper.UpdateApiRequestInfo(_api, response);
 
@@ -91,7 +92,7 @@ namespace Modrinth.Api.Core.Projects
         {
             var endPoint = ModrinthEndpoints.ProjectVersions.Replace("{id}", identifier);
 
-            var response = await _httpClientFactory.HttpClient.GetAsync(endPoint, cancellationToken);
+            var response = await _httpClient.GetAsync(endPoint, cancellationToken);
 
             RequestHelper.UpdateApiRequestInfo(_api, response);
 

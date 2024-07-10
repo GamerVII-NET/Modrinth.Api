@@ -8,9 +8,9 @@ namespace Modrinth.Api.Core.System
 
         public static void UpdateApiRequestInfo(ModrinthApi api, HttpResponseMessage response)
         {
-            var xRateLimit = response.Headers.FirstOrDefault(c => c.Key == "X-Ratelimit-Limit");
-            var xRateRemaining = response.Headers.FirstOrDefault(c => c.Key == "X-Ratelimit-Remaining");
-            var xRateReset = response.Headers.FirstOrDefault(c => c.Key == "X-Ratelimit-Reset");
+            var xRateLimit = response.Headers.FirstOrDefault(c => c.Key == "x-ratelimit-limit");
+            var xRateRemaining = response.Headers.FirstOrDefault(c => c.Key == "x-ratelimit-remaining");
+            var xRateReset = response.Headers.FirstOrDefault(c => c.Key == "x-ratelimit-reset");
 
             if (xRateLimit.Value.FirstOrDefault() is { } limitValue &&
                 int.TryParse(limitValue, out int limit))

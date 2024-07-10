@@ -1,11 +1,14 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Modrinth.Api.Core.Repository;
 using Modrinth.Api.Core.System;
 using Modrinth.Api.Models.Dto;
+using Modrinth.Api.Models.Dto.Entities;
 using Modrinth.Api.Models.Projects;
 
 namespace Modrinth.Api.Core.Projects
@@ -14,11 +17,13 @@ namespace Modrinth.Api.Core.Projects
     {
         private readonly ModrinthApi _api;
         private readonly FileLoader _fileLoader;
+        private readonly DirectoryInfo _directoryInfo;
 
-        public Mods(ModrinthApi api, HttpClientFactory httpClientFactory) : base(api, httpClientFactory)
+        public Mods(ModrinthApi api, HttpClient httpClient, string installationDirectory) : base(api, httpClient)
         {
             _api = api;
             _fileLoader = new FileLoader();
+            _directoryInfo = new DirectoryInfo(installationDirectory);
         }
 
         public new async Task<TProject> FindAsync<TProject>(string identifier, CancellationToken token)
@@ -31,33 +36,18 @@ namespace Modrinth.Api.Core.Projects
             return project;
         }
 
-        public Task DownloadAsync(string path, Version version, bool loadDependencies, CancellationToken token)
+        public async Task DownloadAsync(Version version, CancellationToken token)
         {
-            return DownloadAsync(new DirectoryInfo(path), version, loadDependencies, token);
+            var filesUrls = version.Files.Select(c => c.Url);
+
+            await _fileLoader.DownloadFilesAsync(filesUrls, _directoryInfo.FullName, token);
         }
 
-        public async Task DownloadAsync(DirectoryInfo directory, Version version, bool loadDependencies, CancellationToken token)
-        {
-            var filesUrls = version.Files.Select(c => c.Url).ToList();
-
-            if (loadDependencies)
-            {
-                var dependenciesVersions = await version.GetRecursiveDependenciesUrlsAsync(token);
-
-                var dependencyFiles = dependenciesVersions.SelectMany(c => c.Files).Select(c => c.Url);
-
-                filesUrls.AddRange(dependencyFiles);
-            }
-
-            await _fileLoader.DownloadFilesAsync(filesUrls.ToArray(), directory.FullName, token);
-
-        }
-
-        public async Task<Version?> GetLastVersionAsync(string identifier, CancellationToken token)
+        public async Task<Version?> GetLastVersionAsync(string identifier, string loaderName, CancellationToken token)
         {
             var versions = await GetProjectVersions(identifier, token);
 
-            return versions.OrderByDescending(c => c.DatePublished).FirstOrDefault();
+            return versions.OrderByDescending(c => c.DatePublished).FirstOrDefault(c => c.Loaders.Contains(loaderName));
         }
     }
 }
