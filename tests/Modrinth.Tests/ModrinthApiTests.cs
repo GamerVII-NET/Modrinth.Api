@@ -12,15 +12,12 @@ public class Tests
     private SearchProjectResultDto _projects;
     private SearchProjectResultDto _mods;
 
-    public Tests()
-    {
-        _api = new ModrinthApi();
-    }
-
     [SetUp]
     public void Setup()
     {
+        var modsPath = Path.Combine(Environment.CurrentDirectory, "mods");
 
+        _api = new ModrinthApi(modsPath, new HttpClient());
     }
 
     [Test, Order(1)]
@@ -192,9 +189,7 @@ public class Tests
 
         if (lastVersion != null)
         {
-            var folder = Path.Combine(Environment.CurrentDirectory, "mods");
-
-            await _api.Mods.DownloadAsync(folder, lastVersion, true, CancellationToken.None);
+            await _api.Mods.DownloadAsync(lastVersion, CancellationToken.None);
         }
 
         Assert.Multiple(() =>

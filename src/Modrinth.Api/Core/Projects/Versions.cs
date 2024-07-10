@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,43 +12,19 @@ namespace Modrinth.Api.Core.Projects
     public class Versions
     {
         private readonly ModrinthApi _api;
-        private readonly HttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
 
-        public Versions(ModrinthApi modrinthApi, HttpClientFactory httpClientFactory)
+        public Versions(ModrinthApi modrinthApi, HttpClient httpClient)
         {
             _api = modrinthApi;
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IEnumerable<Version>> GetDependenciesAsync(Version version, string loaderName, CancellationToken token)
-        {
-            var dependencyVersions = new List<Version>();
-
-            foreach (var dependency in version.Dependencies)
-            {
-                Version? dependencyVersion = null;
-                if (!string.IsNullOrEmpty(dependency.VersionId))
-                {
-                    dependencyVersion = await GetVersionById(dependency.VersionId, token);
-                }
-
-                if (!string.IsNullOrEmpty(dependency.ProjectId))
-                {
-                    dependencyVersion = await _api.Mods.GetLastVersionAsync(dependency.ProjectId, loaderName, token);
-                }
-
-                if (dependencyVersion != null)
-                    dependencyVersions.Add(dependencyVersion);
-            }
-
-            return dependencyVersions;
+            _httpClient = httpClient;
         }
 
         private async Task<Version?> GetVersionById(string identifier, CancellationToken token)
         {
             var endPoint = ModrinthEndpoints.Version.Replace("{id}", identifier);
 
-            var response = await _httpClientFactory.HttpClient.GetAsync(endPoint, token);
+            var response = await _httpClient.GetAsync(endPoint, token);
 
             RequestHelper.UpdateApiRequestInfo(_api, response);
 

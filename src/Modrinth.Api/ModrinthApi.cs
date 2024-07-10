@@ -1,3 +1,5 @@
+using System;
+using System.Net.Http;
 using Modrinth.Api.Core.Projects;
 using Modrinth.Api.Core.System;
 
@@ -5,6 +7,7 @@ namespace Modrinth.Api
 {
     public class ModrinthApi
     {
+        private readonly string _installationDirectory;
         private HttpClientFactory HttpClientFactory { get; }
         public Projects Projects { get; }
         public Mods Mods { get; }
@@ -12,18 +15,17 @@ namespace Modrinth.Api
         public Versions Versions { get; }
         public Other Other { get; }
 
-        public ModrinthApi()
+        public ModrinthApi(string installationDirectory, HttpClient httpClient)
         {
-
+            _installationDirectory = installationDirectory;
             Settings = new Settings();
 
-            HttpClientFactory = new HttpClientFactory(Settings.RequestTimeout);
+            httpClient.BaseAddress = new Uri("https://api.modrinth.com");
 
-            Projects = new Projects(this, HttpClientFactory);
-            Mods = new Mods(this, HttpClientFactory);
-            Versions = new Versions(this, HttpClientFactory);
-            Other = new Other(this, HttpClientFactory);
-
+            Projects = new Projects(this, httpClient);
+            Mods = new Mods(this, httpClient, installationDirectory);
+            Versions = new Versions(this, httpClient);
+            Other = new Other(this, httpClient);
         }
 
     }

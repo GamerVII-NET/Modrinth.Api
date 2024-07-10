@@ -45,32 +45,5 @@ namespace Modrinth.Api.Models.Dto
 
         [JsonPropertyName("files")] public List<File> Files { get; set; }
         public ModrinthApi Api { get; set; }
-
-        public Task<IEnumerable<Version>> GetDependenciesUrlsAsync(string loaderName, CancellationToken token)
-        {
-            return Api.Versions.GetDependenciesAsync(this, loaderName, token);
-        }
-
-        public Task<IEnumerable<Version>> GetRecursiveDependenciesUrlsAsync(string loaderName, CancellationToken token)
-        {
-            return GetRecursiveDependenciesUrlsAsync(this, loaderName, token);
-        }
-
-        public async Task<IEnumerable<Version>> GetRecursiveDependenciesUrlsAsync(Version version, string loaderName, CancellationToken token)
-        {
-            var versions = (await Api.Versions.GetDependenciesAsync(version, loaderName, token)).ToList();
-
-            var childVersions = versions.ToList();
-
-            foreach (var dependencyVersion in childVersions)
-            {
-                var dependencies = await GetRecursiveDependenciesUrlsAsync(dependencyVersion, loaderName, token);
-
-
-                versions.AddRange(dependencies);
-            }
-
-            return versions;
-        }
     }
 }

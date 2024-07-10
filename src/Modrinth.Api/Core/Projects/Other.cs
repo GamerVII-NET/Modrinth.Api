@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -12,15 +13,15 @@ namespace Modrinth.Api.Core.Projects
     public class Other
     {
         private readonly ModrinthApi _api;
-        private readonly HttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
 
         private IEnumerable<MinecraftVersion> _minecraftVersionsStorage = new List<MinecraftVersion>();
         private IEnumerable<Category> _categoriesStorage = new List<Category>();
 
-        public Other(ModrinthApi api, HttpClientFactory httpClientFactory)
+        public Other(ModrinthApi api, HttpClient httpClient)
         {
             _api = api;
-            _httpClientFactory = httpClientFactory;
+            _httpClient = httpClient;
         }
 
 
@@ -29,7 +30,7 @@ namespace Modrinth.Api.Core.Projects
             if (_minecraftVersionsStorage.Any())
                 return _minecraftVersionsStorage;
 
-            var request = await _httpClientFactory.HttpClient.GetAsync("/v2/tag/game_version", token);
+            var request = await _httpClient.GetAsync("/v2/tag/game_version", token);
 
             if (!request.IsSuccessStatusCode)
                 return Enumerable.Empty<MinecraftVersion>();
@@ -46,7 +47,7 @@ namespace Modrinth.Api.Core.Projects
             if (_categoriesStorage.Any())
                 return _categoriesStorage;
 
-            var request = await _httpClientFactory.HttpClient.GetAsync("/v2/tag/category", token);
+            var request = await _httpClient.GetAsync("/v2/tag/category", token);
 
             if (!request.IsSuccessStatusCode)
                 return Enumerable.Empty<Category>();
